@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import pytransform3d.rotations as pr
 import cv2
 import pickle
+from scipy.interpolate import interp2d
+from scipy.ndimage import gaussian_filter
 
 ## Visualization for Camera Transformation
 def camera_transformation(checkerboard):
@@ -108,10 +110,10 @@ def plane_transformation(checkerboard):
         y = objp_transformed[:, :, 1]
         z = objp_transformed[:, :, 2]
         
-        xx, yy = np.meshgrid(range(int(x.min()), int(x.max())), range(int(y.min()), int(y.max())))
-        Z = z.mean() + 0 * xx + 0 * yy
+        xx = x.reshape(checkerboard)
+        yy = y.reshape(checkerboard)
+        Z = z.reshape(checkerboard)
 
-        # plot the plane
         ax.plot_surface(xx, yy, Z, alpha=0.75)
 
         ax.set_title("Plane Transformation")
@@ -121,3 +123,6 @@ def plane_transformation(checkerboard):
 
         # Save the figure
         plt.savefig('Plane Transformation.png')
+
+CHECKERBOARD = (9,13)
+plane_transformation(CHECKERBOARD)
