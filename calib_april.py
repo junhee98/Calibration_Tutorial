@@ -23,6 +23,7 @@ if not os.path.exists(un_dist):
 # Create the aruco dictionary
 aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_36h11)
 arucoParams = cv2.aruco.DetectorParameters()
+#arucoParams.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_APRILTAG
 arucoParams.markerBorderBits = 2
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -45,14 +46,21 @@ for fname in images:
     cv2.waitKey(100)
     # Find the AprilTag markers
     corners, ids, _ = cv2.aruco.detectMarkers(gray, aruco_dict, parameters=arucoParams)
-    print(corners[1].shape)
-    print(corners[1])
-    print("+++++++++++++")
-    if len(corners) > 0:
-        objp = np.zeros((len(corners),1,3), np.float32)
-        objpoints.append(objp)
 
-        imgpoints.append(corners[0])
+    if len(corners) > 0:
+        # 현재 문제점.
+        # 우선, 각 objp와 imgpoint를 Apriltag board의 형태에 맞게 잘 정의해 두어야 한다.
+        # 다음으로, 각 이미지별로 Apriltag가 모두가 detect 되지 않을 수 있음.
+        # 따라서, 모든 이미지에 detect 되는 Apriltag를 사용하거나,
+        # 이미지 별로 Apriltag의 위치를 잘 찾아서 사용해야 함. (checkerboard에서 일부만 detect 되는 경우와 비슷) 
+        # Using First locaton of AprilTag (This part use only 1 AprilTag)
+        # objp = np.zeros((corners[0].shape[1],3), np.float32)
+        # tag_size = int(corners[0].shape[1]/2)
+        # objp[:,:2] = np.mgrid[0:tag_size,0:tag_size].T.reshape(-1,2)
+        # objpoints.append(objp)
+
+        # tag_corners = cv2.cornerSubPix(gray, corners[0], (11,11),(-1,-1), criteria)
+        # imgpoints.append(tag_corners)
 
         # Draw and display the corners
         cv2.aruco.drawDetectedMarkers(img, corners, ids)
@@ -92,6 +100,7 @@ for fname in images:
     dst = cv2.undistort(img, mtx, dist, None, new_camera_matrix)
     x,y,w,h = roi
     dst = dst[y:y+h, x:x+w]
+    print(dst.shape)
     fname = fname.replace(src,'')
     cv2.imshow('undistorted img',dst)
     cv2.resizeWindow('undistorted img',640,640)
