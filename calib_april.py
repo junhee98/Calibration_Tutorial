@@ -22,7 +22,8 @@ if not os.path.exists(un_dist):
 
 # Create the aruco dictionary
 aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_36h11)
-
+arucoParams = cv2.aruco.DetectorParameters()
+arucoParams.markerBorderBits = 2
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
@@ -33,16 +34,20 @@ imgpoints = [] # 2d points in image plane.
 images = sorted(glob.glob(src+'*.jpg'),key=lambda s: int(re.search(r'\d+', s).group()))
 
 cv2.namedWindow('image',cv2.WINDOW_NORMAL)
+cv2.namedWindow('image_gray',cv2.WINDOW_NORMAL)
 cv2.moveWindow('image', 20, 20)
+cv2.moveWindow('image_gray', 1300,20)
 for fname in images:
     img = cv2.imread(fname)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    cv2.resizeWindow('image_gray',1280,1280)
     cv2.imshow('image_gray',gray)
-    #cv2.resizeWindow('image_gray',640,640)
     cv2.waitKey(100)
     # Find the AprilTag markers
-    corners, ids, _ = cv2.aruco.detectMarkers(gray, aruco_dict)
-    print(corners)
+    corners, ids, _ = cv2.aruco.detectMarkers(gray, aruco_dict, parameters=arucoParams)
+    print(corners[1].shape)
+    print(corners[1])
+    print("+++++++++++++")
     if len(corners) > 0:
         objp = np.zeros((len(corners),1,3), np.float32)
         objpoints.append(objp)
@@ -51,8 +56,8 @@ for fname in images:
 
         # Draw and display the corners
         cv2.aruco.drawDetectedMarkers(img, corners, ids)
+        cv2.resizeWindow('image',1280,1280)
         cv2.imshow('image',img)
-        cv2.resizeWindow('image',640,640)
         cv2.waitKey(100)
     else:
         print("No marker detected in ",fname)
