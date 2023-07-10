@@ -10,8 +10,8 @@ from visualization import camera_transformation, plane_transformation
 
 parser = argparse.ArgumentParser(description='Camera Calibration')
 parser.add_argument('--src', required=True, help='Source image path')
-parser.add_argument('--overlap',required=True, help='over-lapping visualization')
-parser.add_argument('--plot', required=True, help='plot camera & checkerboard')
+#parser.add_argument('--overlap',required=True, help='over-lapping visualization')
+#parser.add_argument('--plot', required=True, help='plot camera & checkerboard')
 args = parser.parse_args()
 
 #Source image path (Distort image) -- If you use custum data, change this path!
@@ -59,7 +59,7 @@ for fname in images:
     else:
         print("Not found obj point! : ",fname)
 cv2.destroyAllWindows()
-
+print(objpoints[0].shape)
 # Calibration
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
 
