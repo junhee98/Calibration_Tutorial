@@ -5,12 +5,12 @@ import glob
 import re
 import pickle
 import argparse
-from overlap import overlapping
+from overlap import overlapping_april
 from visualization import camera_transformation, plane_transformation
 
 parser = argparse.ArgumentParser(description='Camera Calibration')
 parser.add_argument('--src', required=True, help='Source image path')
-# parser.add_argument('--overlap',required=True, help='over-lapping visualization')
+parser.add_argument('--overlap',required=True, help='over-lapping visualization')
 # parser.add_argument('--plot', required=True, help='plot camera & checkerboard')
 args = parser.parse_args()
 
@@ -23,15 +23,11 @@ if not os.path.exists(un_dist):
 # Create the aruco dictionary
 aruco_dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_APRILTAG_36h11)
 arucoParams = cv2.aruco.DetectorParameters()
-#arucoParams.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_APRILTAG
+arucoParams.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_APRILTAG
 arucoParams.markerBorderBits = 2
 
 #Tag information
-marker_size = 20
-marker_gap = 5
-board_size = [4,6]
-board_idxs = [90, 114]
-
+tag_size = 20
 
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -46,7 +42,6 @@ cv2.namedWindow('image',cv2.WINDOW_NORMAL)
 cv2.namedWindow('image_gray',cv2.WINDOW_NORMAL)
 cv2.moveWindow('image', 20, 20)
 cv2.moveWindow('image_gray', 1300,20)
-bug_i = 1
 for fname in images:
     img = cv2.imread(fname)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -57,33 +52,23 @@ for fname in images:
     corners, tag_idxs, _ = cv2.aruco.detectMarkers(gray, aruco_dict, parameters=arucoParams)
     if len(corners) > 0:
         # insert 3d point of Apriltag
-        for tag_idx in tag_idxs:
-
-            board_idx = np.arange(board_idxs[0], board_idxs[1], dtype=np.int32)
-            
-            objp = []
-            for i in range(len(board_idx)):
-                if tag_idx == board_idx[i]:
-                    ## insert object point
-                    x = (tag_idx - board_idxs[0]) % 4
-                    y = (tag_idx - board_idxs[0]) // 4
-                    objp.append([x*(marker_size+marker_gap), y*(marker_size+marker_gap), 0])
-                    objp.append([x*(marker_size+marker_gap) + marker_size, y*(marker_size+marker_gap), 0])
-                    objp.append([x*(marker_size+marker_gap), y*(marker_size+marker_gap) + marker_size, 0])
-                    objp.append([x*(marker_size+marker_gap) + marker_size, y*(marker_size+marker_gap) + marker_size, 0])
-            objp = np.asarray(objp, np.float32)
-            objpoints.append(objp)
-                    
-        ## insert image point
-        for i in range(len(corners)):
+        for i in range(len(tag_idxs)):
+            # 2D point in image plane
             tag_corners = cv2.cornerSubPix(gray, corners[i], (11,11), (-1,-1), criteria)
-            imgpoints.append(tag_corners)
+            img_point_i = np.asarray(tag_corners, dtype=np.float32)
+            # 3D point in world coord (each tag's center point is origin)
+            obj_point_i = np.array([
+                [-tag_size/2, -tag_size/2, 0],
+                [tag_size/2, -tag_size/2, 0],
+                [tag_size/2, tag_size/2, 0],
+                [-tag_size/2, tag_size/2, 0]],dtype=np.float32)
+            
+            imgpoints.append(img_point_i)
+            objpoints.append(obj_point_i)
         
         cv2.aruco.drawDetectedMarkers(img, corners, tag_idxs)
         cv2.resizeWindow('image', 1280, 1280)
         cv2.imshow('image', img)
-        cv2.imwrite('/home/rv1/junhee/Calibration_Tutorial/debug/' + str(bug_i) + '.jpg', img)
-        bug_i += 1
         cv2.waitKey(100)
     else:
         print("No marker detected !!", fname)
@@ -140,8 +125,8 @@ camera_parameter['translation'] = tvecs
 with open('camera_parameter_april.pkl','wb') as f:
     pickle.dump(camera_parameter,f)
 
-# if args.overlap:
-#     overlapping(src, un_dist)
+if args.overlap:
+    overlapping_april(src, un_dist)
 
 # if args.plot:
 #     camera_transformation(CHECKERBOARD) # this should be updated based on the AprilTag marker
