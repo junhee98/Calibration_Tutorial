@@ -7,8 +7,8 @@ This repo contains a implementation of Camera-Calibration.
 ***
 ## Requirements
 
-- numpy
-- opencv-contrib-python (for Apriltag)
+- numpy==1.21.2
+- opencv-contrib-python==4.8.0 (for Apriltag)
 - Matplotlib
 - pytransform3d
 
