@@ -63,10 +63,10 @@ def overlapping_april(src, un_dist):
     cv2.namedWindow('diff_img',cv2.WINDOW_NORMAL)
     cv2.moveWindow('diff_img', 700, 700)
 
-    diff = 'diff_april/'
+    diff = 'diff_april_ver2/'
     if not os.path.exists(diff):
         os.makedirs(diff)
-    overlap = 'overlap_april/'
+    overlap = 'overlap_april_ver2/'
     if not os.path.exists(overlap):
         os.makedirs(overlap)
 

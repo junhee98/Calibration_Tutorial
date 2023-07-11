@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 # Source image path (Distort image)
 src = args.src
-un_dist = 'dist_april/'
+un_dist = 'dist_april_ver2/'
 if not os.path.exists(un_dist):
     os.makedirs(un_dist)
 
